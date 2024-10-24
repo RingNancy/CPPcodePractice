@@ -1,6 +1,0 @@
-a = input()
-b = input()
-c = input()
-b = int(b)
-c = int(c)
-print(b * c)
