@@ -1,6 +1,7 @@
-#include<bits/stdc++.h>
+#include<iostream>
 int main(int argc, char const *argv[])
 {
-    std:: cout<< "Hello world!";
+    std:: cout<< "Hello world!01"<< std::endl;
+    system("pause");  
     return 0;
 }

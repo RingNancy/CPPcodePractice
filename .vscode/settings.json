@@ -12,5 +12,8 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "utility": "cpp"
+    },
+    "debug.defaultLaunchConfiguration": {
+            "console": "integratedTerminal" // 或者 "externalTerminal"
     }
 }
