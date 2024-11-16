@@ -21,7 +21,7 @@ void downLoadFiles()
     {
         std::unique_lock<std::mutex> lock(mtx);
         //等待另外一个线程操作，有空余空间
-        cond_var.wait(lock, []{return disk_capacity < maxDiskCapacity;});
+        cond_var.wait(lock, []{return disk_capacity < maxDiskCapacity || stopThread;});
 
         std::cout << "线程1正在下载文件, 请等待!" <<std::endl;
         disk_capacity += 10;
@@ -44,7 +44,7 @@ void processFiles()
     while (!stopThread)
     {
         std::unique_lock<std::mutex> lock(mtx);
-        cond_var.wait(lock, []{ return disk_capacity > 0;});
+        cond_var.wait(lock, []{ return disk_capacity > 0 || stopThread;});
 
         std::cout << "正在处理文件......"<<std::endl;
         disk_capacity -= 10;
@@ -68,6 +68,7 @@ int main()
 
     std::this_thread::sleep_for(std::chrono::seconds(20));
     stopThread = true;
+    cond_var.notify_all();
 
     threadA.join();
     threadB.join();
