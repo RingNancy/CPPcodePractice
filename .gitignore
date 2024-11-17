@@ -6,4 +6,4 @@ wpsTrainWork
 Debug/
 x64/
 *.user
-build/
+code/build/
