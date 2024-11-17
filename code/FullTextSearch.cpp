@@ -6,7 +6,6 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
-#include <set>
 
 std::mutex mtx;
 std::unordered_map<std::string, int> invertedIndex;
@@ -48,7 +47,7 @@ void searchInFileChunk(std::ifstream &dataFile, size_t chunkSize, const std::vec
 
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> elapsed = end - start;
-            localTimeCosts[keyword] = elapsed.count();  // 记录该关键词的查找时间
+            localTimeCosts[keyword] += elapsed.count();  // 记录该关键词的查找时间
         }
     }
 
@@ -58,14 +57,14 @@ void searchInFileChunk(std::ifstream &dataFile, size_t chunkSize, const std::vec
         invertedIndex[pair.first] += pair.second;
     }
     for (const auto &pair : localTimeCosts) {
-        timeCosts[pair.first] += pair.second;  // 合并时间
+        timeCosts[pair.first] += pair.second;  // 合并时间,总的消耗时间，之前计算有误，是最后一次的查找时间的记录
     }
 }
 
 int main() {
     std::ifstream inputFile("../wpsTrainWork/keyword.txt");
     std::ifstream dataFile("../wpsTrainWork/enwiki-20231120-abstract1.xml");
-    std::ofstream outputFile("../wpsTrainWork/output02.txt");
+    std::ofstream outputFile("../wpsTrainWork/output01.txt");
 
     // 读取关键词列表
     std::vector<std::string> keywords;
