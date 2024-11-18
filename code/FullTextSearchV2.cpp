@@ -35,7 +35,6 @@ struct TrieNode {
         {
             delete pair.second;
         }
-        
     }
 };
 
@@ -65,15 +64,17 @@ bool searchInTrie(TrieNode* root, const std::string& word) {
 
 // 反向索引：关键词 -> 关键词出现次数
 std::unordered_map<std::string, size_t> keywordCount;
-std::mutex countMutex;  // 互斥锁，保护对 keywordCount 的访问
+std::unordered_map<std::string, std::vector<size_t>> keywordPositions;  // 保存匹配位置
+std::mutex countMutex;  // 互斥锁，保护对 keywordCount 和 keywordPositions 的访问
 
 // 搜索文件块
 void searchInFileChunk(const std::string &chunk, size_t offset, TrieNode* trieRoot, const std::vector<std::string> &keywords) {
     for (const auto &keyword : keywords) {
         size_t pos = 0;
         while ((pos = chunk.find(keyword, pos)) != std::string::npos) {
-            std::lock_guard<std::mutex> guard(countMutex);  // 锁定互斥锁，保护 keywordCount
-            keywordCount[keyword]++;  // 只统计出现次数，不保存位置信息
+            std::lock_guard<std::mutex> guard(countMutex);  // 锁定互斥锁，保护 keywordCount 和 keywordPositions
+            keywordCount[keyword]++;  // 统计出现次数
+            keywordPositions[keyword].push_back(offset + pos);  // 保存匹配位置
             pos += keyword.length();
         }
     }
