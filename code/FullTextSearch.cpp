@@ -15,7 +15,13 @@ std::unordered_map<std::string, std::vector<size_t>> keywordPositions;  // 保�
 
 // 停用词集合
 std::unordered_set<std::string> stopWords = {
-    "a", "the", "and", "is", "are", "be", "to", "of", "in", "it", "on", "for", "with", "as", "this", "by", "at"
+    "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't", "aren't", 
+    "aren't", "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", 
+    "can't", "cannot", "could", "couldn't", "couldn't", "couldn't", "did", "didn't", "do", "does", "doesn't", "don't", 
+    "doing", "don't", "each", "few", "for", "from", "further", "had", "hadn't", "hadn't", "has", "hasn't", "haven't", 
+    "have", "haven't", "having", "having", "he", "he'd", "he'll", "he's", "having", "here", "here's", "hereafter", 
+    "hereby", "herein", "hereof", "hereon", "how", "how's", "how", "how'll", "how","how's", "he", "he'd", "he'll", 
+    "he's", "hereafter","etc"
 };
 
 // 检查是否为停用词
@@ -74,19 +80,33 @@ int main() {
     }
 
     // 设置文件块大小
-    size_t chunkSize = 16 * 1024 * 1024;  // 10MB
+    size_t chunkSize = 16 * 1024 * 1024;  // 32MB
     std::vector<std::future<void>> futures;
 
     // 读取文件并分块处理
-    size_t currentOffset = 0;  // 当前块在文件中的偏移量
+    size_t overlapSize = 32;  // 设置重叠区域大小，确保跨块的关键词能匹配
+    size_t currentOffset = 0;  // 当前块的偏移量
+    std::string previousChunkTail;  // 记录上一个块的尾部
+
     while (dataFile.peek() != EOF) {
         std::string chunk;
-        chunk.resize(chunkSize);
+        chunk.resize(chunkSize + overlapSize);  // 增加重叠区域大小
 
-        // 读取一块数据
-        dataFile.read(&chunk[0], chunkSize);
+        // 读取数据块
+        dataFile.read(&chunk[overlapSize], chunkSize);  // 从重叠区域后开始读取
         size_t bytesRead = dataFile.gcount();
-        chunk.resize(bytesRead);  // 调整块大小为实际读取大小
+        if (bytesRead == 0) break;
+
+        // 截断块的大小为实际读取的字节数
+        chunk.resize(bytesRead + overlapSize);
+
+        // 拼接上一个块的尾部到当前块的头部
+        chunk.replace(0, overlapSize, previousChunkTail);
+
+        // 更新当前块的尾部
+        if (chunk.size() > overlapSize) {
+            previousChunkTail = chunk.substr(chunk.size() - overlapSize);
+        }
 
         // 提交异步任务
         futures.push_back(std::async(std::launch::async, searchInFileChunk, chunk, currentOffset, std::ref(keywords)));
@@ -102,6 +122,7 @@ int main() {
             futures.clear();  // 清空已完成的任务
         }
     }
+
 
     // 确保所有任务完成
     for (auto &f : futures) {
