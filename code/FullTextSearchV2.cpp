@@ -163,6 +163,7 @@ int main() {
     // 记录总耗时
     auto totalDuration = std::chrono::high_resolution_clock::now() - startTime;
     std::cout << "Total time: " << std::chrono::duration<double>(totalDuration).count() * 1000 << " ms" << std::endl; // 总时间输出为毫秒
+    outputFile << "Total time:" << std::chrono::duration<double>(totalDuration).count() * 1000 << " ms\n" ;
 
     return 0;
 }
